@@ -1,0 +1,27 @@
+# macOS system files
+.DS_Store
+**/.DS_Store
+
+# Node, Python, and other common system files
+.env
+*.env
+*.env.*
+*.secret
+*.key
+*.pem
+
+# VS Code settings (optional)
+.vscode/
+
+# Terraform state and config files (if present)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Hidden files (except .gitignore itself)
+.*
+!.gitignore
+
+# Backup files
+*~
