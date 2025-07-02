@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>My Portfolio</title>
+
+
+
+  </head>
+
+  <body>
+
+    <p><strong>This exercise is to find out how I can replace one config to another using a simple 'Hello World' flask app.</strong></p>
+<p>flask app port:5000<br />WSGI server port:8000 (will be NGINX:80)</p>
+
+<table border="1">
+<tbody>
+<tr>
+<td colspan="2">
+<h3>[0] Run a simple flask app with "flask run --host=0.0.0.0"</h3>
+<p><strong>app.py</strong>&nbsp;<strong>(this is the base .py file which will be used in all examples)</strong></p>
+<p>from flask import Flask<br />app = Flask(__name__)</p>
+<p>@app.route('/')<br />def hello_world():<br /> return 'Hello, World!'</p>
+<p>if __name__ == "__main__":<br /> # Only for debugging while developing<br /> app.run(host='0.0.0.0', debug=True)</p>
+</td>
+</tr>
+<tr>
+<td>
+<h3>[1-A] Dockerfile usage</h3>
+</td>
+<td>
+<h3>[1-B] Docker-compose usage</h3>
+</td>
+</tr>
+<tr>
+<td>
+<p>1) Dockernize - Run with a Dockerfile and requirements.txt</p>
+<p>2) Use Gunicorn for WSGI server<br />a) cmd<br />b) cfg</p>
+<p>3) Use uWsgi for WSGI server<br />a) cmd<br />b) cfg</p>
+</td>
+<td>
+<p>1) Dockernize - Run with a docker-compose.yml and requirements.txt</p>
+<p>2) Use Gunicorn for WSGI server<br />a) cmd<br />b) cfg</p>
+<p>3) Use uWsgi for WSGI server<br />a) cmd<br />b) cfg</p>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<h3>[2] Setup Nginx HTTP server</h3>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<h3>[3] look into sockets</h3>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<h3>[4] look into venv</h3>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<h3>[5] look into supervisord config</h3>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<h3>[6] look into CMD and ENTRYPOINT usage in Dockerfile</h3>
+</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>&nbsp;</p>
+<hr />
+<p>&nbsp;</p>
+
+<table border="1">
+<tbody>
+<tr>
+<td>
+<h3>[Prerequistes]</h3>
+</td>
+<td style="vertical-align: top;" colspan="2">
+<ul>
+<li>install both Docker Engine and Docker Compose</li>
+<li>install python3-venv</li>
+<li>sudo usermod -a -G docker $USER</li>
+<li>install and setup nginx</li>
+<li>vim test.sh and ps.sh</li>
+<li>vim build.sh, start.sh and stop.sh for
+<ul>
+<li>[1-A] Dockerfile usage and</li>
+<li>[1-B] Docker-compose usage</li>
+</ul>
+</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td>
+<h3>[0] Run a simple flask app with "flask run --host=0.0.0.0"</h3>
+</td>
+<td style="vertical-align: top;" colspan="2"><strong>A_hello/</strong><br />└── app.py
+<p><strong>app.py</strong></p>
+<p>as above</p>
+<p><strong>To start:</strong></p>
+<p>python3 -m venv venv</p>
+<p>source venv/bin/activate</p>
+<p>flask run --host=0.0.0.0&nbsp;</p>
+<p><strong>To test:</strong></p>
+<p>http://&lt;IP&gt;:5000/&nbsp;</p>
+</td>
+</tr>
+<tr>
+<td>&nbsp;</td>
+<td style="vertical-align: top;">
+<h3>[1-A] Dockerfile usage</h3>
+</td>
+<td style="vertical-align: top;">
+<h3>&nbsp;[1-B] Docker-compose usage (should be used for multi-container)</h3>
+</td>
+</tr>
+<tr>
+<td>&nbsp;</td>
+<td style="vertical-align: top;"><strong>To build (A_build.sh):</strong>
+<p>docker build -t hw:latest /home/ubuntu/A_hello</p>
+<p><strong>To start (A_start.sh):</strong></p>
+<p>docker run -d -p 8000:5000 hw</p>
+<p><strong>To test (test.sh):</strong></p>
+<p>1. curl localhost:8000</p>
+<p>Hello, World!</p>
+<p>2.&nbsp;<a href="http://&lt;IP&gt;:8000/">http://&lt;IP&gt;:8000/</a></p>
+<p><strong>To stop (A_stop.sh):</strong></p>
+<p>docker container stop `docker container ps | grep hw | cut -d' ' -f1`</p>
+</td>
+<td style="vertical-align: top;"><strong>To build (B_build.sh):</strong>
+<p>docker-compose build</p>
+<p><strong>To start (B_start.sh):</strong></p>
+<p>docker-compose up -d</p>
+<p><strong>To test (test.sh):</strong></p>
+<p>1. curl localhost:8000</p>
+<p>Hello, World!</p>
+<p>2.&nbsp;<a href="http://&lt;IP&gt;:8000/">http://&lt;IP&gt;:8000/</a></p>
+<p><strong>To stop (B_stop.sh):</strong></p>
+<p>docker-compose stop</p>
+</td>
+</tr>
+<tr>
+<td>
+<h3>[1]</h3>
+<p>1) Dockernize</p>
+</td>
+<td style="vertical-align: top;"><strong>A_hello/</strong><br />├── Dockerfile<br />├── app.py<br />└── requirements.txt<br />
+<p><strong>Dockerfile</strong></p>
+<p>FROM python:3.6-alpine<br />WORKDIR /app<br />COPY requirements.txt requirements.txt<br />RUN pip install -r requirements.txt<br />COPY app.py app.py<br />CMD ["python", "app.py"]</p>
+<p><strong>app.py</strong></p>
+<p>as above</p>
+<p><strong>requirements.txt</strong></p>
+<p>flask</p>
+<p>&nbsp;</p>
+</td>
+<td style="vertical-align: top;"><strong> B_hello/</strong><br />├── Dockerfile<br />├── app.py<br />├── <span style="color: #0000ff;">docker-compose.yml</span><br />└── requirements.txt<br />
+<p><strong>Dockerfile</strong></p>
+<p>FROM python:3.6-alpine<br />WORKDIR /app<br />COPY requirements.txt requirements.txt<br />RUN pip install -r requirements.txt<br />COPY app.py app.py<br />CMD ["python", "app.py"]</p>
+<p><strong>app.py</strong></p>
+<p>as above</p>
+<p><strong>requirements.txt</strong></p>
+<p>flask</p>
+<p><span style="color: #000000;"><strong>docker-compose.yml</strong></span></p>
+<p><span style="color: #0000ff;">version: '3'</span><br /><span style="color: #0000ff;">services:</span><br /><span style="color: #0000ff;">&nbsp; &nbsp;web:</span><br /><span style="color: #0000ff;">&nbsp; &nbsp; &nbsp; build: .</span><br /><span style="color: #0000ff;">&nbsp; &nbsp; &nbsp; ports:</span><br /><span style="color: #0000ff;">&nbsp; &nbsp; &nbsp; - "8000:5000"</span></p>
+</td>
+</tr>
+<tr>
+<td>
+<h3>[1]</h3>
+<p><span style="color: #000000;">2) Use <span style="color: #008000;">Gunicorn</span> for WSGI server</span></p>
+<p><span style="color: #008000;">a) Gunicorn&nbsp;cmd</span></p>
+</td>
+<td style="vertical-align: top;"><strong>A_hello/</strong><br />├── Dockerfile<br />├── app.py<br />└── requirements.txt<br />
+<p><strong>Dockerfile</strong></p>
+<p>FROM python:3.6-alpine<br />WORKDIR /app<br />COPY requirements.txt requirements.txt<br />RUN pip install -r requirements.txt<br />COPY app.py app.py<br /><span style="color: #008000;">CMD ["gunicorn", "--workers=2", "-b 0.0.0.0:5000","app:app"]</span></p>
+<p><strong>app.py</strong></p>
+<p>as above</p>
+<p><strong>requirements.txt</strong></p>
+<p>flask<br /><span style="color: #008000;">gunicorn</span></p>
+</td>
+<td style="vertical-align: top;"><strong>B_hello/</strong><br />├── Dockerfile<br />├── app.py<br /><span style="color: #0000ff;">├── docker-compose.yml</span><br />└── requirements.txt<br />
+<p><strong>Dockerfile</strong></p>
+<p>FROM python:3.6-alpine<br />WORKDIR /app<br />COPY requirements.txt requirements.txt<br />RUN pip install -r requirements.txt<br />COPY app.py app.py<br /><span style="color: #008000;">CMD ["gunicorn", "--workers=2", "-b 0.0.0.0:5000","app:app"]</span></p>
+<p><strong>app.py</strong></p>
+<p>as above</p>
+<p><strong>requirements.txt</strong></p>
+<p>flask<br /><span style="color: #008000;">gunicorn</span></p>
+</td>
+</tr>
+<tr>
+<td>
+<h3>[1]</h3>
+<p><span style="color: #008000;"><span style="color: #000000;">2) Use</span> Gunicorn <span style="color: #000000;">for WSGI server</span></span></p>
+<p><span style="color: #008000;">b) Gunicorn config</span></p>
+</td>
+<td style="vertical-align: top;"><strong>A_hello/</strong><br />├── Dockerfile<br />├── app.py<br /><span style="color: #008000;">├── gunicorn.ini</span><br />└── requirements.txt<br />
+<p><strong>Dockerfile</strong></p>
+<p>FROM python:3.6-alpine<br />WORKDIR /app<br />COPY requirements.txt requirements.txt<br />RUN pip install -r requirements.txt<br />COPY app.py app.py<br /><span style="color: #008000;">COPY gunicorn.ini gunicorn.ini</span><br /><span style="color: #008000;">CMD ["gunicorn", "--config", "gunicorn.ini", "app:app"]</span></p>
+<p><span style="color: #000000;"><strong>gunicorn.ini</strong></span></p>
+<p><span style="color: #008000;">bind = '0.0.0.0:5000'</span><br /><span style="color: #008000;">workers = 2</span></p>
+<p><strong>app.py</strong></p>
+<p>as above</p>
+<p><span style="color: #000000;"><strong>requirements.txt</strong></span></p>
+<p>flask<br /><span style="color: #008000;">gunicorn</span></p>
+</td>
+<td style="vertical-align: top;"><strong>B_hello/</strong><br />├── Dockerfile<br />├── app.py<br /><span style="color: #0000ff;">├── docker-compose.yml</span><br /><span style="color: #008000;">├── gunicorn.ini</span><br />└── requirements.txt
+<p><strong>Dockerfile</strong></p>
+<p>FROM python:3.6-alpine<br />WORKDIR /app<br />COPY requirements.txt requirements.txt<br />RUN pip install -r requirements.txt<br />COPY app.py app.py<br /><span style="color: #008000;">COPY gunicorn.ini gunicorn.ini</span><br /><span style="color: #008000;">CMD ["gunicorn", "--config", "gunicorn.ini", "app:app"]</span></p>
+<p><span style="color: #000000;"><strong>gunicorn.ini</strong></span></p>
+<p><span style="color: #008000;">bind = '0.0.0.0:5000'</span><br /><span style="color: #008000;">workers = 2</span></p>
+<p><strong>app.py</strong></p>
+<p>as above</p>
+<p><span style="color: #000000;"><strong>requirements.txt</strong></span></p>
+<p>flask<br /><span style="color: #008000;">gunicorn</span></p>
+</td>
+</tr>
+<tr>
+<td>
+<h3>[1]</h3>
+<p>3) Use <span style="color: #ff6600;">uWsgi</span> for WSGI server</p>
+<p><span style="color: #ff6600;">a) uWsgi cmd</span></p>
+</td>
+<td style="vertical-align: top;"><strong>A_hello/</strong><br />├── Dockerfile<br />├── app.py<br />└── requirements.txt<br />
+<p><strong>Dockerfile</strong></p>
+<p><span style="color: #ff6600;">FROM python:3.6.3</span><br />WORKDIR /app<br />COPY requirements.txt requirements.txt<br />RUN pip install -r requirements.txt<br />COPY app.py app.py<br /><span style="color: #ff6600;">CMD ["uwsgi", "--http", "0.0.0.0:5000", "--module", "app:app", "--processes", "2"]</span></p>
+<p><strong>app.py</strong></p>
+<p>as above</p>
+<p><span style="color: #000000;"><strong>requirements.txt</strong></span></p>
+<p>flask<br /><span style="color: #ff6600;">uwsgi</span></p>
+<p>&nbsp;</p>
+</td>
+<td style="vertical-align: top;"><strong>B_hello/</strong><br />├── Dockerfile<br />├── app.py<br /><span style="color: #0000ff;">├── docker-compose.yml</span><br />└── requirements.txt<br />
+<p><strong>Dockerfile</strong></p>
+<p><span style="color: #ff6600;">FROM python:3.6.3</span><br />WORKDIR /app<br />COPY requirements.txt requirements.txt<br />RUN pip install -r requirements.txt<br />COPY app.py app.py<br /><span style="color: #ff6600;">CMD ["uwsgi", "--http", "0.0.0.0:5000", "--module", "app:app", "--processes", "2"]</span></p>
+<p><strong>app.py</strong></p>
+<p>as above</p>
+<p><span style="color: #000000;"><strong>requirements.txt</strong></span></p>
+<p>flask<br /><span style="color: #ff6600;">uwsgi</span></p>
+</td>
+</tr>
+<tr>
+<td>
+<h3>[1]</h3>
+<p><span style="color: #ff6600;">b) uWsgi config</span></p>
+</td>
+<td style="vertical-align: top;"><strong>A_hello/</strong><br />├── Dockerfile<br />├── app.py<br /><span style="color: #ff6600;">├── uwsgi.ini</span><br />└── requirements.txt
+<p><span style="color: #000000;"><strong>Dockerfile</strong></span></p>
+<p><span style="color: #ff6600;">FROM python:3.6.3</span><br />WORKDIR /app<br />COPY requirements.txt requirements.txt<br />RUN pip install -r requirements.txt<br />COPY app.py app.py<br /><span style="color: #ff6600;">COPY uwsgi.ini uwsgi.ini</span><br /><span style="color: #ff6600;">CMD ["uwsgi", "--ini", "uwsgi.ini"]</span></p>
+<p><strong>app.py</strong></p>
+<p>as above</p>
+<p><span style="color: #000000;"><strong>uwsgi.ini</strong></span></p>
+<p><span style="color: #ff6600;">[uwsgi]</span><br /><span style="color: #ff6600;">protocol = uwsgi</span><br /><span style="color: #ff6600;">; This is the name of our Python file</span><br /><span style="color: #ff6600;">; minus the file extension</span><br /><span style="color: #ff6600;">module = app</span><br /><span style="color: #ff6600;">; This is the name of the variable</span><br /><span style="color: #ff6600;">; in our script that will be called</span><br /><span style="color: #ff6600;">callable = app</span><br /><span style="color: #ff6600;">master = true</span><br /><span style="color: #ff6600;">; Set uWSGI to start up 2 workers</span><br /><span style="color: #ff6600;">processes = 2 </span><br /><span style="color: #ff6600;">; We use the port 5000 which we will</span><br /><span style="color: #ff6600;">; then expose on our Dockerfile</span><br /><span style="color: #ff6600;"><strong>http</strong> = 0.0.0.0:5000</span><br /><span style="color: #ff6600;">vacuum = true</span><br /><span style="color: #ff6600;">die-on-term = true</span></p>
+<p><span style="color: #000000;"><strong>requirements.txt</strong></span></p>
+<p>flask<br /><span style="color: #ff6600;">uwsgi</span></p>
+</td>
+<td style="vertical-align: top;"><strong>B_hello/</strong><br />├── Dockerfile<br />├── app.py<br /><span style="color: #0000ff;">├── docker-compose.yml</span><br /><span style="color: #ff6600;">├── uwsgi.ini</span><br />└── requirements.txt<br />
+<p><span style="color: #000000;"><strong>Dockerfile</strong></span></p>
+<p><span style="color: #ff6600;">FROM python:3.6.3</span><br />WORKDIR /app<br />COPY requirements.txt requirements.txt<br />RUN pip install -r requirements.txt<br />COPY app.py app.py<br /><span style="color: #ff6600;">COPY uwsgi.ini uwsgi.ini</span><br /><span style="color: #ff6600;">CMD ["uwsgi", "--ini", "uwsgi.ini"]</span></p>
+<p><strong>app.py</strong></p>
+<p>as above</p>
+<p><span style="color: #000000;"><strong>uwsgi.ini</strong></span></p>
+<p><span style="color: #ff6600;">[uwsgi]</span><br /><span style="color: #ff6600;">protocol = uwsgi</span><br /><span style="color: #ff6600;">; This is the name of our Python file</span><br /><span style="color: #ff6600;">; minus the file extension</span><br /><span style="color: #ff6600;">module = app</span><br /><span style="color: #ff6600;">; This is the name of the variable</span><br /><span style="color: #ff6600;">; in our script that will be called</span><br /><span style="color: #ff6600;">callable = app</span><br /><span style="color: #ff6600;">master = true</span><br /><span style="color: #ff6600;">; Set uWSGI to start up 2 workers</span><br /><span style="color: #ff6600;">processes = 2 </span><br /><span style="color: #ff6600;">; We use the port 5000 which we will</span><br /><span style="color: #ff6600;">; then expose on our Dockerfile</span><br /><span style="color: #ff6600;"><strong>http</strong> = 0.0.0.0:5000</span><br /><span style="color: #ff6600;">vacuum = true</span><br /><span style="color: #ff6600;">die-on-term = true</span></p>
+<p><span style="color: #000000;"><strong>requirements.txt</strong></span></p>
+<p>flask<br /><span style="color: #ff6600;">uwsgi</span></p>
+</td>
+</tr>
+<tr>
+<td>
+<h3>[2] Setup Nginx HTTP server</h3>
+</td>
+<td style="vertical-align: top;" colspan="2">
+<p>(a) sudo vim /etc/nginx/sites-available/gu_redis_nginx.conf</p>
+<p>server {<br /># listen on port 80 (http)<br />listen 80;<br />server_name _;<br />location / {<br /># redirect any requests to the same URL but on https<br />#return 301 https://$host$request_uri;<br /># forward application requests to the gunicorn server<br />proxy_pass http://localhost:8000;<br />proxy_redirect off;<br />proxy_set_header Host $host;<br />proxy_set_header X-Real-IP $remote_addr;<br />proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;<br />}<br />}</p>
+<p>(b) sudo ln -s /etc/nginx/sites-available/gu_redis_nginx.conf /etc/nginx/sites-enabled/gu_redis_nginx.conf&nbsp;</p>
+</td>
+</tr>
+<tr>
+<td>
+<h3>[3] look into sockets</h3>
+</td>
+<td style="vertical-align: top;" colspan="2">&nbsp;ongoing</td>
+</tr>
+<tr>
+<td>
+<h3>[4] look into venv</h3>
+</td>
+<td style="vertical-align: top;" colspan="2">&nbsp;as per reference below</td>
+</tr>
+<tr>
+<td>
+<h3>[5] look into supervisord config</h3>
+<p>sudo apt-get install supervisor</p>
+<p>sudo supervisorctl reload<br />sudo service supervisor restart<br />sudo supervisorctl status</p>
+</td>
+<td style="vertical-align: top;">
+<h3>[5-A] Dockerfile usage</h3>
+</td>
+<td style="vertical-align: top;">
+<h3>[5-B] Docker-compose usage (should be used for multi-container)</h3>
+</td>
+</tr>
+<tr>
+<td>
+<h3>[5]</h3>
+<p>2) Use <span style="color: #008000;">Gunicorn</span> for WSGI server</p>
+<p><span style="color: #008000;">a) Gunicorn</span>&nbsp;<span style="color: #008000;">cmd</span></p>
+<p><strong>gunicorn cmd example (without Docker)</strong></p>
+<p>cat /etc/supervisor/conf.d/hw.conf</p>
+<p>[program:C_hello]<br />directory=/home/ubuntu/C_hello<br />command=/home/ubuntu/C_hello/venv/bin/gunicorn app:app -b localhost:8000<br />autostart=true<br />autorestart=true<br />stderr_logfile=/var/log/hello_world/hello_world.err.log<br />stdout_logfile=/var/log/hello_world/hello_world.out.log</p>
+<h3>&nbsp;</h3>
+</td>
+<td style="vertical-align: top;">&nbsp;</td>
+<td style="vertical-align: top;">&nbsp;</td>
+</tr>
+<tr>
+<td>
+<h3>[5]</h3>
+<p>2) Use <span style="color: #008000;">Gunicorn</span> for WSGI server</p>
+<p><span style="color: #008000;">b) Gunicorn config</span></p>
+<p><strong>gunicorn config example (without Docker)</strong></p>
+<p>cat /etc/supervisor/conf.d/hw.conf</p>
+<p>[program:C_hello]<br />directory=/home/ubuntu/C_hello<br />command=/home/ubuntu/C_hello/venv/bin/gunicorn --config gunicorn.ini app:app localhost:8000<br />autostart=true<br />autorestart=true<br />stderr_logfile=/var/log/hello_world/hello_world.err.log<br />stdout_logfile=/var/log/hello_world/hello_world.out.log</p>
+<p>cat gunicorn.ini</p>
+<p>bind = '0.0.0.0:8000'<br />workers = 2</p>
+&nbsp;</td>
+<td style="vertical-align: top;">&nbsp;</td>
+<td style="vertical-align: top;">&nbsp;</td>
+</tr>
+<tr>
+<td>
+<h3>[5]</h3>
+<p>3) Use <span style="color: #ff6600;">uWsgi</span> for WSGI server</p>
+<p><span style="color: #ff6600;">a) uWsgi cmd</span></p>
+<p><span style="color: #000000;"><strong>uwsgi cmd example (without Docker)</strong></span></p>
+<p>cat /etc/supervisor/conf.d/hw.conf</p>
+<p>[program:C_hello]<br />directory=/home/ubuntu/C_hello<br />command=/home/ubuntu/C_hello/venv/bin/uwsgi --http 0.0.0.0:8000 --module app:app --processes 2<br />autostart=true<br />autorestart=true<br />stderr_logfile=/var/log/hello_world/hello_world.err.log<br />stdout_logfile=/var/log/hello_world/hello_world.out.log</p>
+</td>
+<td style="vertical-align: top;">&nbsp;</td>
+<td style="vertical-align: top;">&nbsp;</td>
+</tr>
+<tr>
+<td>
+<h3>[5]</h3>
+<p>3) Use <span style="color: #ff6600;">uWsgi</span> for WSGI server</p>
+<p><span style="color: #ff6600;">b) uWsgi config</span></p>
+<p><span style="color: #000000;"><strong>uwsgi config example (without Docker)</strong></span></p>
+<p>cat /etc/supervisor/conf.d/hw.conf</p>
+<p>[program:C_hello]<br />directory=/home/ubuntu/C_hello<br />command=/home/ubuntu/C_hello/venv/bin/uwsgi --ini /home/ubuntu/C_hello/uwsgi.ini<br />autostart=true<br />autorestart=true<br />stderr_logfile=/var/log/hello_world/hello_world.err.log<br />stdout_logfile=/var/log/hello_world/hello_world.out.log</p>
+<p>cat uwsgi.ini</p>
+<p>[uwsgi]<br />protocol = uwsgi<br />; This is the name of our Python file<br />; minus the file extension<br />module = app<br />; This is the name of the variable<br />; in our script that will be called<br />callable = app<br />master = true<br />; Set uWSGI to start up 2 workers<br />processes = 2 <br />; We use the port 8000<br />http = 0.0.0.0:8000<br />vacuum = true<br />die-on-term = true<br />max-requests=2000</p>
+</td>
+<td style="vertical-align: top;">&nbsp;</td>
+<td style="vertical-align: top;">&nbsp;</td>
+</tr>
+</tbody>
+</table>
+
+
+
+<p>&nbsp;</p>
+<hr />
+<p>&nbsp;</p>
+
+<table border="1">
+<tbody>
+<tr>
+<td colspan="2">
+<h3>References:</h3>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<h3><a href="https://rushter.com/blog/gunicorn-and-low-and-slow-attacks/" target="_blank" rel="noopener">How not to deploy web applications</a></h3>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<h3><a href="https://gunicorn-docs.readthedocs.io/en/19.9.0/deploy.html" target="_blank" rel="noopener">Official Deploying Gunicorn page</a></h3>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<h3>[2] Setup Nginx HTTP server</h3>
+<p><a href="https://www.digitalocean.com/community/tutorials/how-to-deploy-python-wsgi-apps-using-gunicorn-http-server-behind-nginx" target="_blank" rel="noopener">How to Deploy Python WSGI Apps Using Gunicorn HTTP Server Behind Nginx</a>&nbsp;</p>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<h3>[3] look into sockets</h3>
+<ul>
+<li><a href="https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-18-04" target="_blank" rel="noopener">Configuring Nginx to Proxy Requests</a></li>
+<li><a href="https://medium.com/@smirnov.am/running-flask-in-production-with-docker-1932c88f14d0" target="_blank" rel="noopener">Running Flask in production with Docker</a></li>
+<li><a href="https://netdevops.me/2017/flask-application-in-a-production-ready-container/" target="_blank" rel="noopener">Flask application in a production-ready container</a></li>
+</ul>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<h3>[4] look into venv</h3>
+<ul>
+<li><a href="https://stackoverflow.com/questions/52221590/how-can-i-upgrade-pip-inside-a-venv-inside-a-dockerfile" target="_blank" rel="noopener">not bother with a virtual environment in a Docker image</a></li>
+<li><a href="https://pmac.io/2019/02/multi-stage-dockerfile-and-python-virtualenv/" target="_blank" rel="noopener">Python Virtualenv</a></li>
+</ul>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<h3>[5] look into supervisord config</h3>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<h3>[6] look into CMD and ENTRYPOINT usage in Dockerfile</h3>
+</td>
+</tr>
+</tbody>
+</table>
+
+<table border="1">
+<tbody>
+<tr>
+<td colspan="2">
+<h3>Questions:</h3>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<h3>1. Do we need to use venv when Docker is used?</h3>
+<ul>
+<li><a href="https://stackoverflow.com/questions/52221590/how-can-i-upgrade-pip-inside-a-venv-inside-a-dockerfile" target="_blank" rel="noopener">not bother with a virtual environment in a Docker image</a></li>
+</ul>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<h3>2. How to use supervisord with Docker?</h3>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<h3>3. Best practice&nbsp;</h3>
+<p>a) flask, WSGI server, nginx, docker-compose?</p>
+<p>b) flask, WSGI server as one container + nginx?</p>
+</td>
+</tr>
+</tbody>
+</table>
+
+
+</body>
+</html>
